@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { NewsPage } from "./NewsPage";
 const links = [
   { text: "News", url: "https://blog.hubtel.com/category/news/" },
   {
@@ -20,7 +21,7 @@ const links = [
   },
 ];
 
-test.describe("basics", () => {
+test.describe("Huhbtel Blog home page ", () => {
   test.beforeEach(async ({ page }) => {
     await page.goto("https://blog.hubtel.com/");
   });
@@ -86,5 +87,53 @@ test.describe("basics", () => {
     }
 
     // const hamburger = navbar.getByRole('button', {name: 'Toggle navigation'})
+  });
+});
+
+test.describe("Hubtel blog news page", () => {
+  let newsPage: NewsPage;
+  test.beforeEach(async ({ page }) => {
+    newsPage = new NewsPage(page)
+    await newsPage.goto()
+  });
+  test.afterEach(async ({ page }) => {
+    await newsPage.close();
+  });
+
+  test("Check that page is the news page", async ({ page }) => {
+    newsPage.verifyIsNewPage()
+  });
+
+  test("Verify new letters and that they lead to their respective pages", async ({
+    page,
+  }) => {
+    await test.step("Verify that test container is not empty", async () => {
+      const count = await newsPage.getNewsLetterCount()
+
+      expect(count).toBeGreaterThan(0);
+      expect(count).toBeLessThanOrEqual(12);
+    });
+
+    await test.step("Verify random news letter leads to its page", async () => {
+      const randomChild = await newsPage.getRandomNewsLetter()
+
+      await test.step("Verify random new letter has image", async () => {
+        await newsPage.verifyNewsLetterHasImage(randomChild)
+      });
+
+      await test.step("Verify newsletter leads to its page", async () => {
+        const {linkText, date} = await newsPage.clickRandomNewsLetter(randomChild)
+
+        await newsPage.verifyNewsArticle(linkText, date)
+      })
+
+      await test.step("Verify the pagination buttons work", async () => {
+        const paginator = page.locator("//ul[@class='pagination justify-content-center mb-0']")
+        
+        await test.step("Verify next button", async () => {
+          
+        })
+      })
+    });
   });
 });
